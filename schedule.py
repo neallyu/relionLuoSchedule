@@ -3,22 +3,20 @@ import subprocess
 """
 Definiton of the input parameter
 """
-jobStartNumber = 53
+jobStartNumber = 54
 
 # tv_alpha, tv_beta
 parameter = [
-    [0.5, 1.6],
     [0.5, 1.4],
     [0.5, 1.2]
 ]
 
 
 def executeSubProcess(command=[], jobName=""):
-    p = subprocess.Popen(args=command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
-    p.wait()
+    p = subprocess.run(args=command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
     with open(jobName, "w") as f:
-        f.writelines(p.stdout.read())
-    if p.poll() == 0:
+        f.writelines(p.stdout)
+    if p.returncode == 0:
         print(f"{jobName} executed successfully!")
     else:
         print(f"Error in {jobName}! Please check the log.")
@@ -125,8 +123,8 @@ def commandContent(jobStartNumber, parameter):
 
 if __name__ == "__main__":
     for job, mkDir, refine3D, maskCreate, postProcess in commandContent(jobStartNumber, parameter):
-        executeSubProcess(command=mkDir, job=f"mkdir_job0{job}")
-        executeSubProcess(command=refine3D, job=f"refine_job0{job}")
-        executeSubProcess(command=maskCreate, job=f"mask_job0{job}")
-        executeSubProcess(command=postProcess, job=f"postprocess_job0{job}")
+        executeSubProcess(command=mkDir, jobName=f"mkdir_job0{job}")
+        executeSubProcess(command=refine3D, jobName=f"refine_job0{job}")
+        executeSubProcess(command=maskCreate, jobName=f"mask_job0{job}")
+        executeSubProcess(command=postProcess, jobName=f"postprocess_job0{job}")
         print(f"job0{job} has been finished")
