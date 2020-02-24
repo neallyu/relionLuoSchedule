@@ -1,9 +1,10 @@
 import subprocess
+import time
 
 """
 Definiton of the input parameter
 """
-jobStartNumber = 54
+jobStartNumber = 2
 
 # tv_alpha, tv_beta
 parameter = [
@@ -12,23 +13,28 @@ parameter = [
     [0.5, 1.2]
 ]
 
+dataDir = "Refine3D"
 
-def executeSubProcess(command=[], jobName=""):
+
+def executeSubProcess(command=[], logDir="", jobName=""):
     p = subprocess.run(args=command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
-    with open(jobName, "w") as f:
+    with open(logDir + "/" + jobName, "w") as f:
         f.writelines(p.stdout)
     if p.returncode == 0:
-        print(f"{jobName} executed successfully!")
+        print(time.asctime(), f"\t{jobName} executed successfully!")
     else:
-        print(f"Error in {jobName}! Please check the log.")
+        print(time.asctime(), f"\tError in {jobName}! Please check the log.")
 
 
 def commandContent(jobStartNumber, parameter):
     for i in range(len(parameter)):
-        job = jobStartNumber + i
+        job = str(jobStartNumber + i)
+        if jobStartNumber + i < 10:
+            job = "0" + job
         mkDir = [
             "mkdir",
-            f"Refine3D/job0{job}"
+            "-p",
+            f"{dataDir}/job0{job}"
         ]
         refine3D = [
             "mpirun",
@@ -123,9 +129,12 @@ def commandContent(jobStartNumber, parameter):
 
 
 if __name__ == "__main__":
+    logDir = f"ScheduleLogJob0{jobStartNumber}"
+    mkLogDir = subprocess.run(args=["mkdir", logDir], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
+    print(time.asctime(), f"\tlog files will be saved in ScheduleLogJob0{jobStartNumber}")
     for job, mkDir, refine3D, maskCreate, postProcess in commandContent(jobStartNumber, parameter):
-        executeSubProcess(command=mkDir, jobName=f"mkdir_job0{job}")
-        executeSubProcess(command=refine3D, jobName=f"refine_job0{job}")
-        executeSubProcess(command=maskCreate, jobName=f"mask_job0{job}")
-        executeSubProcess(command=postProcess, jobName=f"postprocess_job0{job}")
-        print(f"job0{job} has been finished")
+        executeSubProcess(command=mkDir, logDir=logDir, jobName=f"mkdirJob0{job}")
+        executeSubProcess(command=refine3D, logDir=logDir, jobName=f"refineJob0{job}")
+        executeSubProcess(command=maskCreate, logDir=logDir, jobName=f"maskJob0{job}")
+        executeSubProcess(command=postProcess, logDir=logDir, jobName=f"postprocessJob0{job}")
+        print(time.asctime(), f"\tJob0{job} has been completed.")
