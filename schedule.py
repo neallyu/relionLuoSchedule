@@ -7,6 +7,7 @@ jobStartNumber = 54
 
 # tv_alpha, tv_beta
 parameter = [
+    [0.5, 1.7],
     [0.5, 1.4],
     [0.5, 1.2]
 ]
