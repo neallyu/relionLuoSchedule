@@ -4,16 +4,35 @@ import time
 """
 Definiton of the input parameter
 """
-jobStartNumber = 2
+jobStartNumber = 1
 
 # tv_alpha, tv_beta
 parameter = [
-    [0.5, 1.7],
-    [0.5, 1.4],
-    [0.5, 1.2]
+    [0.5, 2],
+    [0.5, 1.6],
+    [0.5, 2.4],
+    [0.5, 1.2],
+    [0.5, 0.8],
+    [0.5, 0.4],
+    [0.5, 0.2]
 ]
 
-dataDir = "Refine3D"
+# output dir name
+dataDir = "Relion-luo"
+
+# refine3d input
+particleStar = "particles.star"
+initialModel = "run_it007_class002.mrc"
+iniHigh = "60"
+particleDiameter = "350"
+symmetry = "C1"
+angpix = "1.77"
+
+# maskcreate input
+iniThreshold = "0.02"
+
+# postprocess input
+mtfFile = "falcon_mtf_300kv.star"
 
 
 def executeSubProcess(command=[], logDir="", jobName=""):
@@ -43,15 +62,15 @@ def commandContent(jobStartNumber, parameter):
             "5",
             "/relion-luo/build/bin/relion_refine_mpi",
             "--o",
-            f"Refine3D/job0{job}/run",
+            f"{dataDir}/job0{job}/run",
             "--auto_refine",
             "--split_random_halves",
             "--i", 
-            "particles1.star",
+            f"{particleStar}",
             "--ref",
-            "run_it025_class003.mrc",
+            f"{initialModel}",
             "--ini_high", 
-            "50",
+            f"{iniHigh}",
             "--dont_combine_weights_via_disc",
             "–no_parallel_disc_io",
             "--pool",
@@ -59,7 +78,7 @@ def commandContent(jobStartNumber, parameter):
             "--ctf",
             "--ctf_corrected_ref",
             "--particle_diameter",
-            "200",
+            f"{particleDiameter}",
             "--flatten_solvent",
             "--zero_mask",
             "--oversampling",
@@ -73,7 +92,7 @@ def commandContent(jobStartNumber, parameter):
             "--offset_step",
             "2",
             "--sym",
-            "D2",
+            f"{symmetry}",
             "--low_resol_join_halves",
             "50",
             "--norm",
@@ -83,7 +102,7 @@ def commandContent(jobStartNumber, parameter):
             "--gpu",
             "0,1,2,3",
             "--angpix",
-            "1.77",
+            f"{angpix}",
             "--tv_alpha",
             f"{parameter[i][0]}",
             "--tv_beta",
@@ -99,11 +118,11 @@ def commandContent(jobStartNumber, parameter):
         maskCreate = [
             "/relion-luo/build/bin/relion_mask_create",
             "--i",
-            f"Refine3D/job0{job}/run_class001.mrc",
+            f"{dataDir}/job0{job}/run_class001.mrc",
             "--o",
-            f"Refine3D/job0{job}/mask.mrc",
+            f"{dataDir}/job0{job}/mask.mrc",
             "--ini_threshold",
-            "0.02",
+            f"{iniThreshold}",
             "--width_soft_edge",
             "6",
             "--lowpass",
@@ -111,19 +130,21 @@ def commandContent(jobStartNumber, parameter):
             "--extend_inimask",
             "2",
             "--angpix",
-            "1.77"
+            f"{angpix}"
         ]
         postProcess = [
             "/relion-luo/build/bin/relion_postprocess",
             "--i",
-            f"Refine3D/job0{job}/run",
+            f"{dataDir}/job0{job}/run",
             "--mask",
-            f"Refine3D/job0{job}/mask.mrc",
+            f"{dataDir}/job0{job}/mask.mrc",
             "--angpix",
-            "1.77",
+            f"{angpix}",
             "--o",
-            f"Refine3D/job0{job}/postprocess",
-            "--auto_bfac"
+            f"{dataDir}/job0{job}/postprocess",
+            "--auto_bfac",
+            "--mtf",
+            f"{mtfFile}"
         ]
         yield job, mkDir, refine3D, maskCreate, postProcess
 
