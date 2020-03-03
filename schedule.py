@@ -4,17 +4,13 @@ import time
 """
 Definiton of the input parameter
 """
-jobStartNumber = 1
+jobStartNumber = 27
 
-# tv_alpha, tv_beta
+# tv_alpha, tv_beta, tv_weight, tv_lr, tv_iters
 parameter = [
-    [0.5, 2],
-    [0.5, 1.6],
-    [0.5, 2.4],
-    [0.5, 1.2],
-    [0.5, 0.8],
-    [0.5, 0.4],
-    [0.5, 0.2]
+    [0.4, 2.0, 0.1, 0.5, 150],
+    [0.4, 2.0, 0.05, 1, 150],
+    [0.4, 2.0, 0.05, 0.5, 200]
 ]
 
 # output dir name
@@ -23,7 +19,7 @@ dataDir = "Relion-luo"
 # refine3d input
 particleStar = "particles.star"
 initialModel = "run_it007_class002.mrc"
-iniHigh = "60"
+iniHigh = "70"
 particleDiameter = "350"
 symmetry = "C1"
 angpix = "1.77"
@@ -108,11 +104,11 @@ def commandContent(jobStartNumber, parameter):
             "--tv_beta",
             f"{parameter[i][1]}",
             "--tv_weight",
-            "0.05",
+            f"{parameter[i][2]}",
             "--tv_lr",
-            "0.5",
+            f"{parameter[i][3]}",
             "--tv_iters",
-            "150",
+            f"{parameter[i][4]}",
             "--tv"
         ]
         maskCreate = [
