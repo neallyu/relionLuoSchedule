@@ -4,13 +4,11 @@ import time
 """
 Definiton of the input parameter
 """
-jobStartNumber = 27
+jobStartNumber = 30
 
 # tv_alpha, tv_beta, tv_weight, tv_lr, tv_iters
 parameter = [
-    [0.4, 2.0, 0.1, 0.5, 150],
-    [0.4, 2.0, 0.05, 1, 150],
-    [0.4, 2.0, 0.05, 0.5, 200]
+    [0.4, 2.0, 0.05, 1, 200]
 ]
 
 # output dir name
@@ -28,6 +26,7 @@ angpix = "1.77"
 iniThreshold = "0.02"
 
 # postprocess input
+useMtfFile = True
 mtfFile = "falcon_mtf_300kv.star"
 
 
@@ -128,25 +127,42 @@ def commandContent(jobStartNumber, parameter):
             "--angpix",
             f"{angpix}"
         ]
-        postProcess = [
-            "/relion-luo/build/bin/relion_postprocess",
-            "--i",
-            f"{dataDir}/job0{job}/run",
-            "--mask",
-            f"{dataDir}/job0{job}/mask.mrc",
-            "--angpix",
-            f"{angpix}",
-            "--o",
-            f"{dataDir}/job0{job}/postprocess",
-            "--auto_bfac",
-            "--mtf",
-            f"{mtfFile}"
-        ]
+        if useMtfFile:
+            postProcess = [
+                "/relion-luo/build/bin/relion_postprocess",
+                "--i",
+                f"{dataDir}/job0{job}/run",
+                "--mask",
+                f"{dataDir}/job0{job}/mask.mrc",
+                "--angpix",
+                f"{angpix}",
+                "--o",
+                f"{dataDir}/job0{job}/postprocess",
+                "--auto_bfac",
+                "--mtf",
+                f"{mtfFile}"
+            ]
+        else:
+            postProcess = [
+                "/relion-luo/build/bin/relion_postprocess",
+                "--i",
+                f"{dataDir}/job0{job}/run",
+                "--mask",
+                f"{dataDir}/job0{job}/mask.mrc",
+                "--angpix",
+                f"{angpix}",
+                "--o",
+                f"{dataDir}/job0{job}/postprocess",
+                "--auto_bfac"
+            ]
         yield job, mkDir, refine3D, maskCreate, postProcess
 
 
 if __name__ == "__main__":
-    logDir = f"ScheduleLogJob0{jobStartNumber}"
+    logDirJobNumber = str(jobStartNumber)
+    if jobStartNumber < 10:
+        logDirJobNumber = "0" + logDirJobNumber
+    logDir = f"ScheduleLogJob0{logDirJobNumber}"
     mkLogDir = subprocess.run(args=["mkdir", logDir], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, encoding='utf-8')
     print(time.asctime(), f"\tlog files will be saved in ScheduleLogJob0{jobStartNumber}")
     for job, mkDir, refine3D, maskCreate, postProcess in commandContent(jobStartNumber, parameter):
