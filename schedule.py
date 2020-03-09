@@ -4,11 +4,11 @@ import time
 """
 Definiton of the input parameter
 """
-jobStartNumber = 30
+jobStartNumber = 1
 
-# tv_alpha, tv_beta, tv_weight, tv_lr, tv_iters
+# tv_eps, tv_epsp, tv_alpha, tv_beta, tv_weight, tv_lr, tv_iters
 parameter = [
-    [0.4, 2.0, 0.05, 1, 200]
+    [0.01, 0.005, 0.4, 1.4, 0.1, 0.5, 150]
 ]
 
 # output dir name
@@ -16,17 +16,19 @@ dataDir = "Relion-luo"
 
 # refine3d input
 particleStar = "particles.star"
-initialModel = "run_it007_class002.mrc"
-iniHigh = "70"
-particleDiameter = "350"
+initialModel = "job005_it280_class004.mrc"
+iniHigh = "20"
+particleDiameter = "200"
 symmetry = "C1"
-angpix = "1.77"
+angpix = "1.35"
+useAdaptiveFraction = True
+adaptiveFraction = "0.9"
 
 # maskcreate input
-iniThreshold = "0.02"
+iniThreshold = "0.01"
 
 # postprocess input
-useMtfFile = True
+useMtfFile = False
 mtfFile = "falcon_mtf_300kv.star"
 
 
@@ -72,6 +74,10 @@ def commandContent(jobStartNumber, parameter):
             "3",
             "--ctf",
             "--ctf_corrected_ref",
+            "--iter",
+            "25",
+            "--tau2_fudge",
+            "4",
             "--particle_diameter",
             f"{particleDiameter}",
             "--flatten_solvent",
@@ -98,18 +104,26 @@ def commandContent(jobStartNumber, parameter):
             "0,1,2,3",
             "--angpix",
             f"{angpix}",
-            "--tv_alpha",
+            "--tv_eps",
             f"{parameter[i][0]}",
-            "--tv_beta",
+            "--tv_epsp",
             f"{parameter[i][1]}",
-            "--tv_weight",
+            "--tv_alpha",
             f"{parameter[i][2]}",
-            "--tv_lr",
+            "--tv_beta",
             f"{parameter[i][3]}",
-            "--tv_iters",
+            "--tv_weight",
             f"{parameter[i][4]}",
+            "--tv_lr",
+            f"{parameter[i][5]}",
+            "--tv_iters",
+            f"{parameter[i][6]}",
             "--tv"
         ]
+        if useAdaptiveFraction:
+            refine3D.append("--adaptive_fraction")
+            refine3D.append(f"{adaptiveFraction}")
+
         maskCreate = [
             "/relion-luo/build/bin/relion_mask_create",
             "--i",
@@ -127,34 +141,23 @@ def commandContent(jobStartNumber, parameter):
             "--angpix",
             f"{angpix}"
         ]
+
+        postProcess = [
+            "/relion-luo/build/bin/relion_postprocess",
+            "--i",
+            f"{dataDir}/job0{job}/run",
+            "--mask",
+            f"{dataDir}/job0{job}/mask.mrc",
+            "--angpix",
+            f"{angpix}",
+            "--o",
+            f"{dataDir}/job0{job}/postprocess",
+            "--auto_bfac",            
+        ]
         if useMtfFile:
-            postProcess = [
-                "/relion-luo/build/bin/relion_postprocess",
-                "--i",
-                f"{dataDir}/job0{job}/run",
-                "--mask",
-                f"{dataDir}/job0{job}/mask.mrc",
-                "--angpix",
-                f"{angpix}",
-                "--o",
-                f"{dataDir}/job0{job}/postprocess",
-                "--auto_bfac",
-                "--mtf",
-                f"{mtfFile}"
-            ]
-        else:
-            postProcess = [
-                "/relion-luo/build/bin/relion_postprocess",
-                "--i",
-                f"{dataDir}/job0{job}/run",
-                "--mask",
-                f"{dataDir}/job0{job}/mask.mrc",
-                "--angpix",
-                f"{angpix}",
-                "--o",
-                f"{dataDir}/job0{job}/postprocess",
-                "--auto_bfac"
-            ]
+            postProcess.append("--mtf")
+            postProcess.append(f"{mtfFile}")
+        
         yield job, mkDir, refine3D, maskCreate, postProcess
 
 
